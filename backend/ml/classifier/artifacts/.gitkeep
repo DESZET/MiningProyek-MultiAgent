@@ -1,0 +1,5 @@
+# Trained model artifact lives here:
+#   classifier.pkl   (created by `python -m ml.classifier.train`)
+#
+# This .gitkeep keeps the folder under version control even before training.
+# After Desta runs train.py, the .pkl file should be committed alongside.

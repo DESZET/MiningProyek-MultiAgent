@@ -1,0 +1,10 @@
+# HF Space dependencies — CPU only
+# torch is installed explicitly in Dockerfile (CPU index URL); listing here
+# without version pin to avoid conflicts.
+
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+transformers==4.45.2
+sentencepiece==0.2.0
+huggingface-hub==0.25.2

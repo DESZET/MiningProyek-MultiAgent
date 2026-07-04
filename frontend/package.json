@@ -1,0 +1,47 @@
+{
+  "name": "asahlagi-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Asahlagi — Asah lagi sampai paham. Frontend (React + TypeScript + Vite).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.13.5",
+    "canvas-confetti": "^1.9.4",
+    "clsx": "^2.1.1",
+    "driver.js": "^1.4.0",
+    "lucide-react": "^1.16.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "tailwind-merge": "^2.5.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__generator": "^7.27.0",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/node": "^25.8.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^2.1.9",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.45",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.3",
+    "vitest": "^2.1.9"
+  }
+}

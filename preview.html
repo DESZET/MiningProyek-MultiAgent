@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asahlagi · Design System Preview</title>
+<link rel="icon" type="image/svg+xml" href="frontend/public/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     THEME TOKENS — switch via [data-theme]
+     ============================================ */
+
+  /* Light mode (default) */
+  :root, [data-theme="light"] {
+    --bg-page: #ffffff;
+    --bg-alt: #fafafa;
+    --bg-subtle: #f5f5f5;
+    --bg-chrome: #ffffff;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #737373;
+    --border-subtle: #ececec;
+    --border-standard: #e5e5e5;
+    --border-prominent: #d4d4d4;
+    --brand-green: #3ecf8e;
+    --brand-link: #008556;
+    --brand-button: #00875a;
+    --brand-button-hover: #006b48;
+    --brand-button-text: #ffffff;
+    --brand-button-border: #00875a;
+    --brand-accent: rgba(0, 133, 86, 0.4);
+    --hover-tint: rgba(0, 0, 0, 0.04);
+
+    --shadow-1: 0 1px 2px rgba(15, 15, 15, 0.04);
+    --shadow-2: 0 4px 8px rgba(15, 15, 15, 0.06);
+    --shadow-3: 0 8px 24px rgba(15, 15, 15, 0.08);
+    --shadow-card: var(--shadow-1);
+    --shadow-card-hover: var(--shadow-2);
+    --focus-ring: 0 0 0 3px rgba(62, 207, 142, 0.25);
+
+    --status-tinggi-bg: #00875a;
+    --status-tinggi-text: #ffffff;
+    --status-sedang-bg: #d97706;
+    --status-sedang-text: #ffffff;
+    --status-rendah-bg: #dc2626;
+    --status-rendah-text: #ffffff;
+
+    /* secondary / ghost button */
+    --btn-secondary-bg: #ffffff;
+    --btn-secondary-border: #d4d4d4;
+    --btn-secondary-hover-bg: #fafafa;
+    --btn-secondary-hover-border: #a3a3a3;
+  }
+
+  /* Dark mode */
+  [data-theme="dark"] {
+    --bg-page: #171717;
+    --bg-alt: #1a1a1a;
+    --bg-subtle: #1f1f1f;
+    --bg-chrome: #171717;
+    --text-primary: #fafafa;
+    --text-secondary: #b4b4b4;
+    --text-muted: #898989;
+    --border-subtle: #242424;
+    --border-standard: #2e2e2e;
+    --border-prominent: #363636;
+    --brand-green: #3ecf8e;
+    --brand-link: #00c573;
+    --brand-button: #0f0f0f;
+    --brand-button-hover: #1a1a1a;
+    --brand-button-text: #fafafa;
+    --brand-button-border: #fafafa;
+    --brand-accent: rgba(62, 207, 142, 0.3);
+    --hover-tint: rgba(255, 255, 255, 0.05);
+
+    --shadow-1: none;
+    --shadow-2: none;
+    --shadow-3: none;
+    --shadow-card: none;
+    --shadow-card-hover: none;
+    --focus-ring: 0 0 0 3px rgba(62, 207, 142, 0.4);
+
+    --status-tinggi-bg: #3ecf8e;
+    --status-tinggi-text: #0f0f0f;
+    --status-sedang-bg: #d97706;
+    --status-sedang-text: #ffffff;
+    --status-rendah-bg: #dc2626;
+    --status-rendah-text: #ffffff;
+
+    --btn-secondary-bg: #0f0f0f;
+    --btn-secondary-border: #2e2e2e;
+    --btn-secondary-hover-bg: #1a1a1a;
+    --btn-secondary-hover-border: #363636;
+  }
+
+  /* ============================================
+     BASE
+     ============================================ */
+  * { box-sizing: border-box; }
+  html { background: var(--bg-page); }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-weight: 400;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    line-height: 1.5;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  body, body * {
+    transition: background-color 0.2s ease, color 0.2s ease,
+                border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+
+  /* ============================================
+     PAGE CHROME
+     ============================================ */
+  .header {
+    padding: 32px 48px;
+    background: var(--bg-chrome);
+    border-bottom: 1px solid var(--border-standard);
+    position: relative;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 500;
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+  .header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+  .container {
+    padding: 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section { margin-bottom: 64px; }
+  .section h2 {
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0 0 4px;
+    letter-spacing: -0.2px;
+    color: var(--text-primary);
+  }
+  .section .subhead {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+
+  /* ============================================
+     THEME TOGGLE (sticky top-right)
+     ============================================ */
+  .theme-toggle {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 100;
+    display: inline-flex;
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    border-radius: 9999px;
+    padding: 4px;
+    box-shadow: var(--shadow-1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+  .theme-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .theme-toggle button:hover {
+    color: var(--text-primary);
+  }
+  .theme-toggle button.active {
+    background: var(--text-primary);
+    color: var(--bg-page);
+  }
+  .theme-toggle button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .theme-icon {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: -2px;
+  }
+
+  /* ============================================
+     SECTION 1 — BRAND COLORS (always show all)
+     ============================================ */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .swatch {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-standard);
+    background: var(--bg-page);
+  }
+  .swatch-color {
+    height: 60px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .swatch-meta {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .swatch-name { font-weight: 500; color: var(--text-primary); }
+  .swatch-hex {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    font-size: 10px;
+    margin-top: 2px;
+  }
+
+  /* ============================================
+     NEUTRAL SCALE (active mode only)
+     ============================================ */
+  .scale-light { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .scale-dark  { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  [data-theme="light"] .scale-dark { display: none; }
+  [data-theme="dark"]  .scale-light { display: none; }
+
+  /* ============================================
+     MAPPING TABLE (always both columns)
+     ============================================ */
+  .map-card {
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    border-radius: 12px;
+    padding: 8px 16px;
+    box-shadow: var(--shadow-card);
+  }
+  .map-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .map-table th, .map-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+  .map-table tr:last-child td { border-bottom: none; }
+  .map-table th {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .map-table .active-col {
+    background: var(--bg-alt);
+    border-left: 2px solid var(--brand-button);
+  }
+  .swatch-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border-standard);
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  /* ============================================
+     BUTTONS
+     ============================================ */
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.14;
+    padding: 8px 32px;
+    border-radius: 9999px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  .btn-primary {
+    background: var(--brand-button);
+    color: var(--brand-button-text);
+    border-color: var(--brand-button-border);
+    box-shadow: var(--shadow-card);
+  }
+  .btn-primary:hover {
+    background: var(--brand-button-hover);
+    border-color: var(--brand-button-hover);
+  }
+  [data-theme="dark"] .btn-primary:hover { border-color: var(--brand-button-border); }
+
+  .btn-secondary {
+    background: var(--btn-secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--btn-secondary-border);
+  }
+  .btn-secondary:hover {
+    background: var(--btn-secondary-hover-bg);
+    border-color: var(--btn-secondary-hover-border);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 8px 16px;
+    border-color: transparent;
+  }
+  .btn-ghost:hover { background: var(--hover-tint); }
+
+  .btn-destructive {
+    background: var(--status-rendah-bg);
+    color: var(--status-rendah-text);
+    border-color: var(--status-rendah-bg);
+  }
+  .btn-small { padding: 6px 20px; font-size: 13px; }
+
+  .btn-meta {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ============================================
+     CARDS
+     ============================================ */
+  .card-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .card {
+    border-radius: 12px;
+    padding: 20px;
+    flex: 1 1 240px;
+    min-width: 240px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--border-prominent);
+  }
+  .card h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.16px;
+    color: var(--text-primary);
+  }
+  .card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .card-accent {
+    border-color: var(--brand-accent);
+  }
+
+  /* ============================================
+     NAVIGATION
+     ============================================ */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-radius: 12px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    box-shadow: var(--shadow-card);
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+  .nav-brand-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+  .nav-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .nav-links a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--brand-link); }
+
+  /* ============================================
+     RESULT CARD (app component)
+     ============================================ */
+  .result-card {
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 640px;
+    background: var(--bg-page);
+    border: 1px solid var(--brand-accent);
+    box-shadow: var(--shadow-card);
+  }
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .badge-tinggi { background: var(--status-tinggi-bg); color: var(--status-tinggi-text); }
+  .badge-sedang { background: var(--status-sedang-bg); color: var(--status-sedang-text); }
+  .badge-rendah { background: var(--status-rendah-bg); color: var(--status-rendah-text); }
+
+  .result-title {
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    letter-spacing: -0.16px;
+    line-height: 1.25;
+    color: var(--text-primary);
+  }
+  .result-body {
+    font-size: 14px;
+    margin: 0 0 16px;
+    color: var(--text-secondary);
+  }
+  .result-stats {
+    display: flex;
+    gap: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .stat-number {
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-top: 4px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================
+     STATUS PILLS
+     ============================================ */
+  .status-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .status-card {
+    flex: 1;
+    min-width: 200px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    box-shadow: var(--shadow-card);
+  }
+  .status-card .status-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .status-bar {
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 12px;
+  }
+
+  /* ============================================
+     SHADOW DEMO (light mode emphasized)
+     ============================================ */
+  .shadow-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 32px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border-standard);
+    border-radius: 12px;
+  }
+  .shadow-block {
+    width: 140px;
+    height: 100px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+  }
+  .shadow-block strong { color: var(--text-primary); font-weight: 500; }
+  .shadow-0 { box-shadow: none; }
+  .shadow-1 { box-shadow: var(--shadow-1); }
+  .shadow-2 { box-shadow: var(--shadow-2); }
+  .shadow-3 { box-shadow: var(--shadow-3); }
+  .shadow-accent { box-shadow: var(--shadow-1); border-color: var(--brand-accent); }
+
+  .dark-note {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  [data-theme="light"] .dark-note { display: none; }
+
+  /* ============================================
+     CHECKLIST
+     ============================================ */
+  .check-list {
+    background: var(--bg-page);
+    border: 1px solid var(--border-standard);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .check-list ul { margin: 0; padding-left: 20px; }
+  .check-list li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .check-list li b {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  /* ============================================
+     UTILITY
+     ============================================ */
+  .ratio {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--bg-subtle);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    margin-left: 6px;
+  }
+  .ratio.pass { background: rgba(0, 133, 86, 0.12); color: var(--brand-link); }
+  [data-theme="dark"] .ratio.pass { background: rgba(62, 207, 142, 0.15); color: var(--brand-link); }
+
+  .footer-note {
+    margin-top: 48px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- Theme toggle -->
+<div class="theme-toggle" role="tablist" aria-label="Theme switcher">
+  <button id="btn-light" class="active" type="button" role="tab" aria-selected="true">
+    <svg class="theme-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="8" cy="8" r="3"/>
+      <line x1="8" y1="1" x2="8" y2="3"/>
+      <line x1="8" y1="13" x2="8" y2="15"/>
+      <line x1="1" y1="8" x2="3" y2="8"/>
+      <line x1="13" y1="8" x2="15" y2="8"/>
+      <line x1="3.05" y1="3.05" x2="4.46" y2="4.46"/>
+      <line x1="11.54" y1="11.54" x2="12.95" y2="12.95"/>
+      <line x1="3.05" y1="12.95" x2="4.46" y2="11.54"/>
+      <line x1="11.54" y1="4.46" x2="12.95" y2="3.05"/>
+    </svg>Light
+  </button>
+  <button id="btn-dark" type="button" role="tab" aria-selected="false">
+    <svg class="theme-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 9.5a6 6 0 11-7.5-7.5 5 5 0 007.5 7.5z"/>
+    </svg>Dark
+  </button>
+</div>
+
+<header class="header">
+  <h1>Asahlagi · Design System Preview</h1>
+  <p>Capstone TP-G005 · <em>Asah lagi sampai paham.</em> · Emerald base · Toggle the theme on the top-right to switch between Light &amp; Dark</p>
+</header>
+
+<main class="container">
+
+  <!-- ============ 1. BRAND COLORS ============ -->
+  <section class="section">
+    <h2>1. Brand Colors</h2>
+    <p class="subhead">Mode-agnostic emerald identity, with text-tuned variants per mode for AA contrast.</p>
+    <div class="swatch-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#3ecf8e"></div>
+        <div class="swatch-meta"><div class="swatch-name">Brand Green</div><div class="swatch-hex">#3ecf8e · icon/decorative</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#00c573"></div>
+        <div class="swatch-meta"><div class="swatch-name">Link · Dark <span class="ratio pass">5.4:1</span></div><div class="swatch-hex">#00c573</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#008556"></div>
+        <div class="swatch-meta"><div class="swatch-name">Link · Light <span class="ratio pass">4.6:1</span></div><div class="swatch-hex">#008556</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#00875a"></div>
+        <div class="swatch-meta"><div class="swatch-name">Button BG · Light</div><div class="swatch-hex">#00875a</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:rgba(62,207,142,.3)"></div>
+        <div class="swatch-meta"><div class="swatch-name">Accent Border · Dark</div><div class="swatch-hex">rgba(62,207,142,.3)</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:rgba(0,133,86,.4)"></div>
+        <div class="swatch-meta"><div class="swatch-name">Accent Border · Light</div><div class="swatch-hex">rgba(0,133,86,.4)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. NEUTRAL SCALE (active mode) ============ -->
+  <section class="section">
+    <h2>2. Neutral Scale</h2>
+    <p class="subhead">Active mode's neutral progression — toggle the theme to see the mirror inverse.</p>
+
+    <div class="scale-light">
+      <div class="swatch"><div class="swatch-color" style="background:#ffffff;border-bottom:1px solid #ececec"></div><div class="swatch-meta"><div class="swatch-name">Pure White</div><div class="swatch-hex">#ffffff · page</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#fafafa"></div><div class="swatch-meta"><div class="swatch-name">Off White</div><div class="swatch-hex">#fafafa · alt</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#f5f5f5"></div><div class="swatch-meta"><div class="swatch-name">Subtle Surface</div><div class="swatch-hex">#f5f5f5</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#ececec"></div><div class="swatch-meta"><div class="swatch-name">Border Subtle</div><div class="swatch-hex">#ececec</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#e5e5e5"></div><div class="swatch-meta"><div class="swatch-name">Border Standard</div><div class="swatch-hex">#e5e5e5</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#d4d4d4"></div><div class="swatch-meta"><div class="swatch-name">Border Prominent</div><div class="swatch-hex">#d4d4d4</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#a3a3a3"></div><div class="swatch-meta"><div class="swatch-name">Disabled</div><div class="swatch-hex">#a3a3a3</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#737373"></div><div class="swatch-meta"><div class="swatch-name">Muted Text</div><div class="swatch-hex">#737373</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#525252"></div><div class="swatch-meta"><div class="swatch-name">Secondary Text</div><div class="swatch-hex">#525252</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#171717"></div><div class="swatch-meta"><div class="swatch-name">Primary Text</div><div class="swatch-hex">#171717</div></div></div>
+    </div>
+
+    <div class="scale-dark">
+      <div class="swatch"><div class="swatch-color" style="background:#0f0f0f"></div><div class="swatch-meta"><div class="swatch-name">Near Black</div><div class="swatch-hex">#0f0f0f · button</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#171717"></div><div class="swatch-meta"><div class="swatch-name">Dark</div><div class="swatch-hex">#171717 · page</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#242424"></div><div class="swatch-meta"><div class="swatch-name">Border Subtle</div><div class="swatch-hex">#242424</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#2e2e2e"></div><div class="swatch-meta"><div class="swatch-name">Border Standard</div><div class="swatch-hex">#2e2e2e</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#363636"></div><div class="swatch-meta"><div class="swatch-name">Border Prominent</div><div class="swatch-hex">#363636</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#4d4d4d"></div><div class="swatch-meta"><div class="swatch-name">Dark Gray</div><div class="swatch-hex">#4d4d4d</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#898989"></div><div class="swatch-meta"><div class="swatch-name">Muted Text</div><div class="swatch-hex">#898989</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#b4b4b4"></div><div class="swatch-meta"><div class="swatch-name">Secondary Text</div><div class="swatch-hex">#b4b4b4</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#efefef"></div><div class="swatch-meta"><div class="swatch-name">Near White</div><div class="swatch-hex">#efefef</div></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:#fafafa"></div><div class="swatch-meta"><div class="swatch-name">Off White</div><div class="swatch-hex">#fafafa · primary</div></div></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. TOKEN MAPPING ============ -->
+  <section class="section">
+    <h2>3. Token Mapping</h2>
+    <p class="subhead">Reference: dark↔light correspondence. The active column is highlighted.</p>
+    <div class="map-card">
+      <table class="map-table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th id="col-dark">Dark Mode</th>
+            <th id="col-light">Light Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Page background</td><td><span class="swatch-inline" style="background:#171717"></span><code>#171717</code></td><td><span class="swatch-inline" style="background:#ffffff"></span><code>#ffffff</code></td></tr>
+          <tr><td>Card surface</td><td><span class="swatch-inline" style="background:#171717"></span><code>#171717</code></td><td><span class="swatch-inline" style="background:#ffffff"></span><code>#ffffff</code></td></tr>
+          <tr><td>Nested / alt surface</td><td><span class="swatch-inline" style="background:#1a1a1a"></span><code>#1a1a1a</code></td><td><span class="swatch-inline" style="background:#fafafa"></span><code>#fafafa</code></td></tr>
+          <tr><td>Primary text</td><td><span class="swatch-inline" style="background:#fafafa"></span><code>#fafafa</code></td><td><span class="swatch-inline" style="background:#171717"></span><code>#171717</code></td></tr>
+          <tr><td>Secondary text</td><td><span class="swatch-inline" style="background:#b4b4b4"></span><code>#b4b4b4</code></td><td><span class="swatch-inline" style="background:#525252"></span><code>#525252</code></td></tr>
+          <tr><td>Muted text</td><td><span class="swatch-inline" style="background:#898989"></span><code>#898989</code></td><td><span class="swatch-inline" style="background:#737373"></span><code>#737373</code></td></tr>
+          <tr><td>Border standard</td><td><span class="swatch-inline" style="background:#2e2e2e"></span><code>#2e2e2e</code></td><td><span class="swatch-inline" style="background:#e5e5e5"></span><code>#e5e5e5</code></td></tr>
+          <tr><td>Border prominent</td><td><span class="swatch-inline" style="background:#363636"></span><code>#363636</code></td><td><span class="swatch-inline" style="background:#d4d4d4"></span><code>#d4d4d4</code></td></tr>
+          <tr><td>Brand link</td><td><span class="swatch-inline" style="background:#00c573"></span><code>#00c573</code></td><td><span class="swatch-inline" style="background:#008556"></span><code>#008556</code></td></tr>
+          <tr><td>Brand button bg</td><td><span class="swatch-inline" style="background:#0f0f0f"></span><code>#0f0f0f</code> + white border</td><td><span class="swatch-inline" style="background:#00875a"></span><code>#00875a</code></td></tr>
+          <tr><td>Brand accent border</td><td><span class="swatch-inline" style="background:rgba(62,207,142,.3)"></span><code>rgba(62,207,142,.3)</code></td><td><span class="swatch-inline" style="background:rgba(0,133,86,.4)"></span><code>rgba(0,133,86,.4)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 4. BUTTONS ============ -->
+  <section class="section">
+    <h2>4. Buttons</h2>
+    <p class="subhead">Primary pill (emerald-branded) · Secondary · Ghost · Destructive.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary">Mulai Mengasah</button>
+      <button class="btn btn-secondary">Lihat Materi</button>
+      <button class="btn btn-ghost">Batal</button>
+      <button class="btn btn-destructive">Reset</button>
+    </div>
+    <div class="btn-meta">Hover, click, &amp; tab through to see hover/focus states.</div>
+  </section>
+
+  <!-- ============ 5. CARDS ============ -->
+  <section class="section">
+    <h2>5. Cards</h2>
+    <p class="subhead">Standard card vs brand-accent card. Hover to see elevation lift (shadow only visible in light mode).</p>
+    <div class="card-row">
+      <div class="card">
+        <h3>Materi Pembelajaran</h3>
+        <p>Tempelkan teks materi untuk menghasilkan kuis otomatis dari konten yang baru kamu pelajari.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>Featured Result</h3>
+        <p>Card dengan brand-accent border untuk highlight elemen penting di halaman hasil.</p>
+      </div>
+      <div class="card">
+        <h3>Riwayat Kuis</h3>
+        <p>Lihat hasil kuis sebelumnya beserta tingkat pemahaman dan rekomendasi belajar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. NAVIGATION ============ -->
+  <section class="section">
+    <h2>6. Navigation</h2>
+    <p class="subhead">Sticky header with brand identity, links, and primary CTA.</p>
+    <nav class="nav">
+      <div class="nav-brand">
+        <svg class="nav-brand-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="#3ecf8e" d="M32 8 L56 56 L43 56 L32 30 L21 56 L8 56 Z M19 47 L43 32 L46 37 L22 52 Z"/>
+        </svg>
+        asahlagi
+      </div>
+      <div class="nav-links">
+        <a href="#">Beranda</a>
+        <a href="#">Materi</a>
+        <a href="#">Riwayat</a>
+        <a href="#">Tentang</a>
+        <button class="btn btn-primary btn-small">Mulai Mengasah</button>
+      </div>
+    </nav>
+  </section>
+
+  <!-- ============ 7. RESULT CARD ============ -->
+  <section class="section">
+    <h2>7. Result Card — "Tingkat Pemahaman"</h2>
+    <p class="subhead">Application-level component: result page hero with badge, narrative, and stats.</p>
+    <div class="result-card">
+      <span class="badge badge-tinggi">TINGGI</span>
+      <h3 class="result-title">Pemahaman Anda Solid</h3>
+      <p class="result-body">Skor tinggi dengan waktu pengerjaan efisien menunjukkan kamu menguasai konsep utama materi. Lanjut ke materi berikutnya atau coba kuis dengan tingkat kesulitan lebih tinggi.</p>
+      <div class="result-stats">
+        <div><div class="stat-number">85%</div><div class="stat-label">SKOR</div></div>
+        <div><div class="stat-number">4:32</div><div class="stat-label">WAKTU</div></div>
+        <div><div class="stat-number">17/20</div><div class="stat-label">BENAR</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. STATUS PILLS ============ -->
+  <section class="section">
+    <h2>8. Tingkat Pemahaman — Semantic Status</h2>
+    <p class="subhead">Tinggi (emerald) · Sedang (amber) · Rendah (red).</p>
+    <div class="status-row">
+      <div class="status-card">
+        <span class="badge badge-tinggi">TINGGI</span>
+        <div class="status-desc">Pemahaman baik, lanjut ke materi berikutnya.</div>
+        <div class="status-bar" style="background:#00875a"></div>
+      </div>
+      <div class="status-card">
+        <span class="badge badge-sedang">SEDANG</span>
+        <div class="status-desc">Pemahaman sebagian, ulangi bagian penting.</div>
+        <div class="status-bar" style="background:#d97706"></div>
+      </div>
+      <div class="status-card">
+        <span class="badge badge-rendah">RENDAH</span>
+        <div class="status-desc">Konsep dasar perlu ditinjau ulang.</div>
+        <div class="status-bar" style="background:#dc2626"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9. SHADOW ELEVATION ============ -->
+  <section class="section">
+    <h2>9. Shadow Elevation</h2>
+    <p class="subhead">Light mode uses subtle low-alpha shadows; dark mode uses border-only depth (shadows are no-op in dark).</p>
+    <div class="shadow-row">
+      <div class="shadow-block shadow-0"><strong>Level 0</strong>none</div>
+      <div class="shadow-block shadow-1"><strong>Level 1</strong>resting</div>
+      <div class="shadow-block shadow-2"><strong>Level 2</strong>hover</div>
+      <div class="shadow-block shadow-3"><strong>Level 3</strong>modal</div>
+      <div class="shadow-block shadow-accent"><strong>Level 4</strong>brand accent</div>
+    </div>
+    <div class="dark-note">Note: in dark mode, shadows are intentionally disabled. Depth comes from the border hierarchy (#242424 → #2e2e2e → #363636).</div>
+  </section>
+
+  <!-- ============ 10. CHECKLIST ============ -->
+  <section class="section">
+    <h2>10. Verification Checklist</h2>
+    <p class="subhead">Toggle the theme several times and verify each item visually.</p>
+    <div class="check-list">
+      <ul>
+        <li><b>Brand identity konsisten</b> — emerald terlihat sebagai "Tempa green" di kedua mode (bukan dua warna berbeda).</li>
+        <li><b>Kontras text</b> — body text terbaca nyaman di kedua mode tanpa "menyilaukan" atau "redup".</li>
+        <li><b>Hierarchy</b> — primary text jelas lebih dominan dari secondary dan muted text.</li>
+        <li><b>Card depth</b> — di light mode, card terangkat dari background. Di dark mode, card terdefinisi via border.</li>
+        <li><b>Button hierarchy</b> — primary paling menonjol, secondary jelas tapi tidak compete, ghost paling subtle.</li>
+        <li><b>Status colors</b> — Tinggi/Sedang/Rendah readable dan visually differentiable di kedua mode.</li>
+        <li><b>Brand accent border</b> — kelihatan di kedua mode (tidak terlalu pucat di light, tidak terlalu menyolok di dark).</li>
+        <li><b>Hover state</b> — coba hover card di light mode → shadow harus naik halus, tidak agresif.</li>
+        <li><b>Focus state</b> — tab/click button → focus ring emerald terlihat di kedua mode.</li>
+        <li><b>Toggle transition</b> — perpindahan light↔dark halus (200ms ease), bukan jarring snap.</li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="footer-note">PREVIEW · ASAHLAGI · TP-G005 · NOT FOR PRODUCTION</p>
+
+</main>
+
+<script>
+  (function() {
+    var html = document.documentElement;
+    var btnLight = document.getElementById('btn-light');
+    var btnDark = document.getElementById('btn-dark');
+    var colDark = document.getElementById('col-dark');
+    var colLight = document.getElementById('col-light');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-theme', theme);
+
+      if (theme === 'light') {
+        btnLight.classList.add('active');
+        btnLight.setAttribute('aria-selected', 'true');
+        btnDark.classList.remove('active');
+        btnDark.setAttribute('aria-selected', 'false');
+        if (colLight) colLight.classList.add('active-col');
+        if (colDark) colDark.classList.remove('active-col');
+        document.querySelectorAll('.map-table tr').forEach(function(tr) {
+          var cells = tr.children;
+          if (cells.length === 3) {
+            cells[1].classList.remove('active-col');
+            cells[2].classList.add('active-col');
+          }
+        });
+      } else {
+        btnDark.classList.add('active');
+        btnDark.setAttribute('aria-selected', 'true');
+        btnLight.classList.remove('active');
+        btnLight.setAttribute('aria-selected', 'false');
+        if (colDark) colDark.classList.add('active-col');
+        if (colLight) colLight.classList.remove('active-col');
+        document.querySelectorAll('.map-table tr').forEach(function(tr) {
+          var cells = tr.children;
+          if (cells.length === 3) {
+            cells[1].classList.add('active-col');
+            cells[2].classList.remove('active-col');
+          }
+        });
+      }
+
+      try { localStorage.setItem('tempa-preview-theme', theme); } catch (e) {}
+    }
+
+    btnLight.addEventListener('click', function() { applyTheme('light'); });
+    btnDark.addEventListener('click', function() { applyTheme('dark'); });
+
+    // Restore preference
+    var saved = null;
+    try { saved = localStorage.getItem('tempa-preview-theme'); } catch (e) {}
+    if (saved === 'dark' || saved === 'light') {
+      applyTheme(saved);
+    } else {
+      applyTheme('light');
+    }
+  })();
+</script>
+
+</body>
+</html>

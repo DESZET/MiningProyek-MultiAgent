@@ -1,0 +1,25 @@
+# Render Blueprint — deploys the Asahlagi FastAPI backend.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Render auto-detects this file at the repo root. After connecting the repo,
+# set the secret env vars (marked sync: false) in the Render dashboard.
+
+services:
+  - type: web
+    name: asahlagi-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      # Set these in the Render dashboard (not committed):
+      - key: HF_SPACE_URL
+        sync: false   # e.g. https://raviarnan-asahlagi-quizgen.hf.space
+      - key: DATABASE_URL
+        sync: false   # Neon connection string
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false   # e.g. https://asahlagi.vercel.app,https://localhost

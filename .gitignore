@@ -1,0 +1,109 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+
+# The Python "lib/" rule above is too broad — it also matches the frontend's
+# source folder frontend/src/lib/ (cn.ts, deviceId.ts). Un-ignore it.
+!frontend/src/lib/
+!frontend/src/lib/**
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# mypy / ruff
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+
+# ===== Node / Frontend =====
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Build output
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/out/
+
+# Vite
+*.local
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Prepared training data (regenerate via prepare_tydiqa.py; too large for git)
+backend/ml/generator/data/*.jsonl
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== Editors / OS =====
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===== Env / Secrets =====
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.pem
+# OAuth client secret downloads (Google Cloud Console) — never commit these.
+client_secret*.json
+*client_secret*.json
+
+# ===== Misc =====
+*.log
+tmp/
+.cache/
+
+# HF Space clone (separate git repo for huggingface.co/spaces/raviarnan/asahlagi-quizgen)
+backend/asahlagi-quizgen/
+.vercel

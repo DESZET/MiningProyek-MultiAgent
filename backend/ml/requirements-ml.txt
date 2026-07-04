@@ -1,0 +1,27 @@
+# Asahlagi ML Training Dependencies
+# Heavier deps used ONLY when training models (not at runtime).
+#
+# Web app (uvicorn) does NOT need these — see ../requirements.txt for runtime deps.
+# Install only if you're training models locally (Desta) or uploading to HF Hub from CLI.
+#
+# For Audry's DL training, use Google Colab — the Colab runtime has these pre-installed.
+# This file is mainly for Desta's local sklearn training.
+
+# Inherit base deps (web app already has these)
+-r ../requirements.txt
+
+# ===== Training-only extras for DL =====
+# These are used in the Colab notebook, not strictly needed for local sklearn training.
+# Listed here for documentation + parity with what Colab provides.
+datasets==3.0.1                # Hugging Face datasets (TyDiQA-id loader)
+accelerate==0.34.2             # HF Trainer support
+evaluate==0.4.3                # BLEU score evaluation
+sacrebleu==2.4.3               # BLEU implementation
+
+# ===== Visualization for training analysis =====
+matplotlib==3.9.2              # plot accuracy curves, confusion matrices
+seaborn==0.13.2                # nicer plots
+
+# ===== Notebook environment (for Audry running locally if not using Colab) =====
+jupyter==1.1.1
+ipykernel==6.29.5

@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================================
+   Asahlagi — Theme tokens
+   Mirrors DESIGN.md §2-5. Switch via [data-theme="light|dark"] on <html>.
+   ================================================================ */
+
+@layer base {
+  :root,
+  [data-theme="light"] {
+    --bg-page: #ffffff;
+    --bg-alt: #fafafa;
+    --bg-subtle: #f5f5f5;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #737373;
+    --border-subtle: #ececec;
+    --border-standard: #e5e5e5;
+    --border-prominent: #d4d4d4;
+    --brand-link: #008556;
+    --brand-button: #00875a;
+    --brand-button-hover: #006b48;
+    --brand-button-text: #ffffff;
+    --brand-button-border: #00875a;
+    --brand-accent: rgba(0, 133, 86, 0.4);
+    --hover-tint: rgba(0, 0, 0, 0.04);
+
+    --shadow-1: 0 1px 2px rgba(15, 15, 15, 0.04);
+    --shadow-2: 0 4px 8px rgba(15, 15, 15, 0.06);
+    --shadow-3: 0 8px 24px rgba(15, 15, 15, 0.08);
+    --focus-ring: 0 0 0 3px rgba(62, 207, 142, 0.25);
+
+    --status-tinggi: #00875a;
+    --status-tinggi-text: #ffffff;
+    --status-sedang: #d97706;
+    --status-sedang-text: #ffffff;
+    --status-rendah: #dc2626;
+    --status-rendah-text: #ffffff;
+  }
+
+  [data-theme="dark"] {
+    --bg-page: #171717;
+    --bg-alt: #1a1a1a;
+    --bg-subtle: #1f1f1f;
+    --text-primary: #fafafa;
+    --text-secondary: #b4b4b4;
+    --text-muted: #898989;
+    --border-subtle: #242424;
+    --border-standard: #2e2e2e;
+    --border-prominent: #363636;
+    --brand-link: #00c573;
+    /* Primary buttons stay brand-green in dark mode (was monochrome #0f0f0f).
+       Green is deep enough to keep the hardcoded white button text readable on
+       the dark page background. */
+    --brand-button: #00a06a;
+    --brand-button-hover: #00875a;
+    --brand-button-text: #ffffff;
+    --brand-button-border: #00a06a;
+    --brand-accent: rgba(62, 207, 142, 0.3);
+    --hover-tint: rgba(255, 255, 255, 0.05);
+
+    --shadow-1: none;
+    --shadow-2: none;
+    --shadow-3: none;
+    --focus-ring: 0 0 0 3px rgba(62, 207, 142, 0.4);
+
+    --status-tinggi: #3ecf8e;
+    --status-tinggi-text: #0f0f0f;
+    --status-sedang: #d97706;
+    --status-sedang-text: #ffffff;
+    --status-rendah: #dc2626;
+    --status-rendah-text: #ffffff;
+  }
+
+  html {
+    background: var(--bg-page);
+  }
+
+  body {
+    margin: 0;
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+    font-weight: 400;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    line-height: 1.5;
+    /* Mobile: kill the grey tap-flash (we have our own active/focus states)
+       and stop iOS from inflating text on rotate. */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  /* Theme-fade for every element. Intentionally excludes box-shadow: animating
+     shadow blur on every node spikes paint cost on theme toggle (INP). Elements
+     that want a shadow hover transition opt in locally. */
+  body * {
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  *:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: 6px;
+  }
+}
+
+/* ================================================================
+   Safe-area helpers — pad past notches / status bar / gesture nav on
+   mobile (Capacitor + notched browsers). env() resolves to 0 elsewhere,
+   so these are no-ops on desktop. (ROADMAP §6.5-A)
+   ================================================================ */
+
+.safe-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* Horizontal gutter that is ALSO notch-safe. The element sets its base gutter
+   via --safe-gutter (default 0); we pad by max(base, notch inset). This must
+   NOT clobber a base gutter — earlier it set padding directly to env() (=0 on
+   non-notched screens), which overrode Tailwind's px-* and made content hug the
+   edge. Set --safe-gutter via an arbitrary property, e.g. `[--safe-gutter:1.5rem]`. */
+.safe-px {
+  padding-left: max(var(--safe-gutter, 0px), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--safe-gutter, 0px), env(safe-area-inset-right, 0px));
+}
+
+/* ================================================================
+   Single-question quiz transitions. Keyed by currentIndex so each
+   question fades+slides in on mount.
+   ================================================================ */
+
+@keyframes question-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-question-in {
+  animation: question-in 220ms ease-out;
+}
+
+/* ================================================================
+   Reduced motion — honor the OS/browser "reduce motion" preference
+   across the whole app: looping animations (the loading ping, skeleton
+   shimmer), width/transform transitions (XP/progress/mastery meters),
+   the question slide-in, theme color transitions, etc. JS-driven motion
+   (confetti, count-up) is gated separately in its hooks.
+   ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,14 @@
+<svg viewBox="0 0 240 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Asahlagi logo">
+  <title>Asahlagi — Asah lagi sampai paham.</title>
+  <!-- Icon: stylized "A" with diagonal slash crossbar in emerald, mode-agnostic -->
+  <path fill="#3ecf8e" d="M32 8 L56 56 L43 56 L32 30 L21 56 L8 56 Z M19 47 L43 32 L46 37 L22 52 Z"/>
+  <!-- Wordmark: "asahlagi" in Inter Medium, inherits color from CSS for dark/light support -->
+  <text
+    x="76" y="44"
+    font-family="Inter, -apple-system, system-ui, 'Helvetica Neue', sans-serif"
+    font-size="32"
+    font-weight="500"
+    fill="currentColor"
+    letter-spacing="-0.5"
+  >asahlagi</text>
+</svg>
