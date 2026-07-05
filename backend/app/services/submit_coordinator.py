@@ -3,6 +3,11 @@
 Per ARCHITECTURE.md §9: orchestrates the full submit flow —
 get quiz from storage → evaluate → classify → insight → recommend → response.
 
+Multi-Agent upgrade (AI_AGENT_IDEAS.md §Agent Insight):
+    - insight & recommendation sekarang dihasilkan agent_insight (LLM),
+      bukan rule-based template statis.
+    - Fallback otomatis ke rule-based kalau LLM tidak tersedia.
+
 This module is intentionally thin. It does NOT implement any business
 logic; it just wires together the services that do.
 
@@ -20,6 +25,7 @@ from app.schemas.result import (
     ScoreSummary,
 )
 from app.services import (
+    agent_insight,
     insight_engine,
     quiz_evaluator,
     quiz_storage,
@@ -54,8 +60,11 @@ def process_submission(
         time_taken_seconds=time_taken_seconds,
     )
     level = understanding_classifier.classify(eval_result)
-    insight = insight_engine.generate_insight(level, eval_result)
-    recommendation = recommendation_engine.generate_recommendation(level, eval_result)
+
+    # Agent Insight: LLM-powered insight + recommendation (dengan fallback rule-based)
+    insight, recommendation = agent_insight.generate_insight_and_recommendation(
+        level, eval_result
+    )
 
     # Build per-question review by zipping evaluator output with stored question text.
     questions_by_id = {q.id: q for q in quiz.questions}

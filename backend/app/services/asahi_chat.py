@@ -6,9 +6,16 @@ Two modes:
     prompt (Asahi only discusses studying / the app, refuses off-topic, resists
     prompt-injection). Both run server-side; the GitHub token never leaves here.
 
+Multi-Agent upgrade (AI_AGENT_IDEAS.md §Agent Asahi):
+  - Asahi kini punya tools: get_quiz_history, get_weak_topics,
+    generate_new_quiz, search_study_tips.
+  - Tool dipanggil via function calling (OpenAI tool_calls API).
+  - Fallback ke mode tanpa tools kalau API tidak support.
+
 Matches the codebase convention of sync services + httpx.
 """
 
+import json
 import logging
 import os
 
@@ -223,6 +230,242 @@ def generate_reply(request: ChatRequest) -> str:
     )
 
 
+# ============================================================================
+# Agent Tools — function calling definitions (AI_AGENT_IDEAS.md §Agent Asahi)
+# ============================================================================
+
+_TOOLS: list[dict] = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_quiz_history",
+            "description": (
+                "Ambil riwayat kuis terbaru pengguna ini: skor, topik, dan level pemahaman. "
+                "Gunakan kalau pengguna bertanya tentang hasil kuis sebelumnya, progres, atau statistik belajar."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "Jumlah kuis terakhir yang ingin diambil (default 5, max 10).",
+                        "default": 5,
+                    }
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weak_topics",
+            "description": (
+                "Identifikasi topik-topik yang masih lemah berdasarkan riwayat kuis pengguna. "
+                "Gunakan kalau pengguna bertanya 'apa yang harus dipelajari', 'topik mana yang lemah', "
+                "atau minta rekomendasi materi belajar selanjutnya."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "Jumlah topik lemah yang ingin ditampilkan (default 3).",
+                        "default": 3,
+                    }
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_new_quiz",
+            "description": (
+                "Generate kuis baru dari topik tertentu. "
+                "Gunakan kalau pengguna minta 'buatkan soal tentang X', 'aku mau latihan X', "
+                "atau 'buat kuis tentang [topik]'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Topik atau materi yang ingin dikuiskan, misalnya 'fotosintesis' atau 'persamaan kuadrat'.",
+                    },
+                    "difficulty": {
+                        "type": "string",
+                        "enum": ["easy", "medium", "hard"],
+                        "description": "Tingkat kesulitan kuis (default: medium).",
+                        "default": "medium",
+                    },
+                    "num_questions": {
+                        "type": "integer",
+                        "description": "Jumlah soal (3, 5, 7, atau 10). Default 5.",
+                        "default": 5,
+                    },
+                },
+                "required": ["topic"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_study_tips",
+            "description": (
+                "Cari tips dan strategi belajar yang relevan untuk topik tertentu. "
+                "Gunakan kalau pengguna minta tips, cara belajar, atau strategi untuk topik/mata pelajaran tertentu."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Topik atau mata pelajaran yang ingin dicari tipsnya.",
+                    }
+                },
+                "required": ["topic"],
+            },
+        },
+    },
+]
+
+
+def _execute_tool(tool_name: str, tool_args: dict, device_id: str | None) -> str:
+    """Eksekusi tool yang diminta LLM dan return hasilnya sebagai string JSON."""
+    from app.services import agent_tools
+
+    try:
+        if tool_name == "get_quiz_history":
+            limit = min(int(tool_args.get("limit", 5)), 10)
+            result = agent_tools.get_quiz_history(device_id, limit=limit)
+        elif tool_name == "get_weak_topics":
+            limit = min(int(tool_args.get("limit", 3)), 5)
+            result = agent_tools.get_weak_topics(device_id, limit=limit)
+        elif tool_name == "generate_new_quiz":
+            topic = tool_args.get("topic", "")
+            difficulty = tool_args.get("difficulty", "medium")
+            num_questions = int(tool_args.get("num_questions", 5))
+            result = agent_tools.generate_new_quiz(topic, difficulty, num_questions)
+        elif tool_name == "search_study_tips":
+            topic = tool_args.get("topic", "")
+            result = agent_tools.search_study_tips(topic)
+        else:
+            result = {"error": f"Tool '{tool_name}' tidak dikenal."}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("_execute_tool %s failed: %s", tool_name, exc)
+        result = {"error": str(exc)}
+
+    return json.dumps(result, ensure_ascii=False, default=str)
+
+
+def _call_model_with_tools(
+    messages: list[dict],
+    max_tokens: int,
+    device_id: str | None = None,
+    temperature: float = _TEMPERATURE,
+) -> str:
+    """Call GitHub Models dengan function calling. Handles satu putaran tool call.
+
+    Flow:
+        1. Kirim messages + tools ke LLM
+        2. Kalau LLM minta tool → eksekusi → append hasilnya → call lagi (max 1x)
+        3. Return teks reply final
+    """
+    token = _require_token()
+
+    def _post(msgs: list[dict], include_tools: bool) -> dict:
+        payload: dict = {
+            "model": _MODEL,
+            "messages": msgs,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if include_tools:
+            payload["tools"] = _TOOLS
+            payload["tool_choice"] = "auto"
+        resp = httpx.post(
+            _API_URL,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=_TIMEOUT_S,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    try:
+        data = _post(messages, include_tools=True)
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code
+        logger.warning("Asahi chat upstream HTTP %s", status)
+        if status == 429:
+            raise ApiException(
+                429,
+                CHAT_RATE_LIMITED,
+                "Asahi lagi rame banget nih 🙏 Tunggu sebentar lalu coba lagi ya.",
+            ) from exc
+        # Fallback: coba tanpa tools
+        try:
+            data = _post(messages, include_tools=False)
+        except Exception:
+            raise ApiException(
+                502, CHAT_FAILED, "Asahi lagi nggak bisa nyaut. Coba lagi sebentar ya."
+            ) from exc
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("Asahi chat upstream failed: %s", type(exc).__name__)
+        raise ApiException(
+            502, CHAT_FAILED, "Asahi lagi nggak bisa nyaut. Coba lagi sebentar ya."
+        ) from exc
+
+    choice = data.get("choices", [{}])[0]
+    message = choice.get("message", {})
+    finish_reason = choice.get("finish_reason", "")
+
+    # LLM minta tool call → eksekusi lalu lanjut satu putaran lagi
+    if finish_reason == "tool_calls" and message.get("tool_calls"):
+        tool_calls = message["tool_calls"]
+        # Append assistant turn (dengan tool_calls) ke history
+        augmented = list(messages) + [message]
+
+        for tc in tool_calls:
+            fn_name = tc.get("function", {}).get("name", "")
+            fn_args_raw = tc.get("function", {}).get("arguments", "{}")
+            try:
+                fn_args = json.loads(fn_args_raw)
+            except (json.JSONDecodeError, TypeError):
+                fn_args = {}
+
+            logger.info("Asahi tool call: %s(%s)", fn_name, fn_args)
+            tool_result = _execute_tool(fn_name, fn_args, device_id)
+
+            augmented.append({
+                "role": "tool",
+                "tool_call_id": tc.get("id", ""),
+                "content": tool_result,
+            })
+
+        # Satu putaran lagi setelah tool result
+        try:
+            data2 = _post(augmented, include_tools=False)
+            reply = (data2.get("choices", [{}])[0].get("message", {}).get("content") or "").strip()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Asahi second-turn failed: %s", exc)
+            reply = ""
+    else:
+        reply = (message.get("content") or "").strip()
+
+    if not reply:
+        raise ApiException(
+            502, CHAT_FAILED, "Asahi lagi nggak bisa nyaut. Coba lagi sebentar ya."
+        )
+    return reply
+
+
 def _quiz_context(device_id: str | None) -> str | None:
     """Build a short, accurate summary of the user's recent quiz data so Asahi can
     talk about it. Returns None if there's no data (so she won't make results up)."""
@@ -252,7 +495,12 @@ def _quiz_context(device_id: str | None) -> str | None:
 
 
 def generate_free_reply(request: FreeChatRequest, device_id: str | None = None) -> str:
-    """Free-chat mode: system prompt + (optional) quiz context + history + message."""
+    """Free-chat mode dengan tools (AI_AGENT_IDEAS.md §Agent Asahi).
+
+    Asahi sekarang punya akses ke tools: get_quiz_history, get_weak_topics,
+    generate_new_quiz, search_study_tips — dipanggil otomatis oleh LLM
+    kalau dibutuhkan berdasarkan pesan user.
+    """
     messages: list[dict] = [{"role": "system", "content": _FREE_SYSTEM_PROMPT}]
     ctx = _quiz_context(device_id)
     if ctx:
@@ -262,4 +510,4 @@ def generate_free_reply(request: FreeChatRequest, device_id: str | None = None) 
         role = "assistant" if turn.role == "asahi" else "user"
         messages.append({"role": role, "content": turn.content})
     messages.append({"role": "user", "content": request.message})
-    return _call_model(messages, max_tokens=260, temperature=0.85)
+    return _call_model_with_tools(messages, max_tokens=280, device_id=device_id, temperature=0.85)

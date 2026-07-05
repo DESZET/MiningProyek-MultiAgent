@@ -9,6 +9,11 @@ The wrapper:
     3. Falls back to rule-based generation if DL is unavailable
     4. Wraps result in QuizInternal with a fresh quiz_id
 
+Multi-Agent upgrade (AI_AGENT_IDEAS.md §Agent Quiz Maker — Fase 2):
+    - Setelah soal dari DL/rule-based terkumpul, agent_quiz_maker.polish_questions()
+      dipanggil untuk memperbaiki grammar dan distractor via LLM.
+    - Fallback graceful: kalau LLM tidak tersedia, soal dikembalikan apa adanya.
+
 The actual model loading + question generation logic lives in
 `backend/ml/generator/inference.py`. See ML.md §3 for details.
 
@@ -116,12 +121,16 @@ def _wrap_quiz(
     quiz_id: str | None = None,
     topic: str | None = None,
     shuffle_options: bool = True,
+    apply_polish: bool = True,
 ) -> QuizInternal:
     """Build a QuizInternal from a list of questions, renumbering IDs.
 
     Only `multiple_choice` options are reordered when shuffle is off —
     `true_false` keeps its semantic [Benar, Salah] order and `short_answer`
     has no options.
+
+    apply_polish: kalau True, jalankan agent_quiz_maker.polish_questions() sebagai
+    post-processing step (LLM grammar/distractor fix). Fallback graceful.
     """
     renumbered = []
     for i, q in enumerate(questions):
@@ -143,6 +152,15 @@ def _wrap_quiz(
                 correct_matches=q.correct_matches,
             )
         )
+
+    # Agent Quiz Maker — LLM polish step (Fase 2)
+    if apply_polish and renumbered:
+        try:
+            from app.services import agent_quiz_maker
+            renumbered = agent_quiz_maker.polish_questions(renumbered, text)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("_wrap_quiz: agent_quiz_maker skipped: %s", exc)
+
     return QuizInternal(
         quiz_id=quiz_id or str(uuid.uuid4()),
         questions=renumbered,
