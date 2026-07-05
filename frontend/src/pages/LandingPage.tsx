@@ -231,7 +231,7 @@ export function LandingPage() {
             &copy; {new Date().getFullYear()} Asahlagi. Dibuat oleh Tim TP-G005.
           </div>
           <a 
-            href="https://github.com/ravi-arnan/TempaCapstoneProject" 
+            href="https://github.com/DESZET/MiningProyek-MultiAgent.git" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:text-text-primary transition-colors"
