@@ -40,6 +40,12 @@ trafilatura==1.12.2    # Article text extraction from URLs
 # ===== Rate limiting =====
 slowapi==0.1.9
 
+# ===== Multi-Agent Framework (AI_AGENT_IDEAS.md §Fase 3) =====
+# LangGraph: state machine orchestrator untuk multi-agent flow
+# langchain-openai: ChatOpenAI wrapper (OpenAI-compatible, pakai GitHub Models)
+langgraph>=0.2.16
+langchain-openai>=0.2.5
+
 # ===== Dev / testing =====
 pytest==8.3.3
 
