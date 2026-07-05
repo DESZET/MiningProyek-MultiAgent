@@ -49,7 +49,7 @@ def _route_after_evaluator(state: AgentState) -> Literal["agent_insight", "agent
     - needs_retry=True → trigger Auto-Retry Question (quiz maker baru)
     - else → lanjut ke insight
     """
-    evaluator = state.get("evaluator", {})
+    evaluator = state.get("evaluator") or {}
     retry_count = state.get("retry_count", 0)
     max_retries = state.get("max_retries", 1)
 

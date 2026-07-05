@@ -305,6 +305,7 @@ def submit_quiz_endpoint(
     evaluator = state.get("evaluator") or {}
     insight = state.get("insight") or {}
     quiz_maker = state.get("quiz_maker")  # berisi retry quiz kalau needs_retry
+    needs_retry = evaluator.get("needs_retry", False) and quiz_maker is not None
 
     # Gunakan submit_coordinator legacy untuk build QuizSubmitResponse base
     # (untuk backward compat dengan gamification recording)
@@ -330,7 +331,7 @@ def submit_quiz_endpoint(
         question_reviews=base_response.question_reviews,
         # Multi-agent extras
         study_path=insight.get("study_path", []),
-        retry_quiz_id=quiz_maker.get("quiz_id") if quiz_maker and evaluator.get("needs_retry") else None,
+        retry_quiz_id=quiz_maker.get("quiz_id") if needs_retry else None,
         agent_log=state.get("agent_log", []),
     )
 
