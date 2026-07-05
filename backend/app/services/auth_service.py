@@ -60,7 +60,9 @@ def verify_google_credential(credential: str) -> dict:
     try:
         # Checks signature, expiry, and audience == client_id.
         info = id_token.verify_oauth2_token(credential, _get_transport(), client_id)
-    except ValueError:
+    except ValueError as exc:
+        import logging
+        logging.getLogger("asahlagi").warning("Google token verify failed: %s", exc)
         raise ApiException(
             status_code=401,
             code=INVALID_GOOGLE_TOKEN,
