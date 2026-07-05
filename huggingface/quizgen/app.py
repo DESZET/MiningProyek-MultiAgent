@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # Config
 # ============================================================================
 
-MODEL_NAME = "raviarnan/indot5-quizgen-asahlagi"  # fine-tuned on TyDiQA-id (was Wikidepia/IndoT5-base)
+MODEL_NAME = "DESZETT/indot5-quizgen-asahlagi"  # fine-tuned on TyDiQA-id
 MAX_INPUT_LENGTH = 512
 MAX_OUTPUT_LENGTH = 48
 NUM_BEAMS = 4
