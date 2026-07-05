@@ -301,9 +301,9 @@ def submit_quiz_endpoint(
             detail=state["error"],
         )
 
-    # Ambil hasil dari state agents
-    evaluator = state.get("evaluator", {})
-    insight = state.get("insight", {})
+    # Ambil hasil dari state agents (bisa None kalau LLM timeout)
+    evaluator = state.get("evaluator") or {}
+    insight = state.get("insight") or {}
     quiz_maker = state.get("quiz_maker")  # berisi retry quiz kalau needs_retry
 
     # Gunakan submit_coordinator legacy untuk build QuizSubmitResponse base
