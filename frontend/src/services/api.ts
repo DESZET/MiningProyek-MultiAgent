@@ -44,10 +44,8 @@ const BASE_URL =
 // Default timeout for most endpoints
 const DEFAULT_TIMEOUT_MS = 10_000;
 
-// Quiz generation goes through DL inference (HF Space) and can take 6-15s
-// for a normal quiz, longer if Space is cold-starting (~30s).
-// 90s gives safe headroom without making users wait absurdly long.
-const QUIZ_GENERATE_TIMEOUT_MS = 90_000;
+// Submit goes through multi-agent orchestrator (Evaluator + Insight LLM) — can take 20-40s
+const QUIZ_SUBMIT_TIMEOUT_MS = 60_000;
 
 async function fetchWithTimeout(
   url: string,
@@ -199,7 +197,7 @@ export async function generateQuizFromPdf(
 export function submitQuiz(
   req: QuizSubmitRequest,
 ): Promise<QuizSubmitResponse> {
-  return postJson<QuizSubmitRequest, QuizSubmitResponse>("/quiz/submit", req);
+  return postJson<QuizSubmitRequest, QuizSubmitResponse>("/quiz/submit", req, QUIZ_SUBMIT_TIMEOUT_MS);
 }
 
 /**
@@ -396,3 +394,7 @@ export function getAsahiHistory(): Promise<ChatHistoryResponse> {
     "X-Device-Id": getDeviceId(),
   });
 }
+
+// Quiz generation goes through multi-agent orchestrator (Extractor + Quiz Maker + LLM polish)
+// can take 15-30s. 90s gives headroom for cold HF Space start.
+const QUIZ_GENERATE_TIMEOUT_MS = 90_000;

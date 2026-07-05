@@ -1,3 +1,10 @@
 
+# Env files (may contain secrets like GOOGLE_CLIENT_ID)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
 # Test coverage output
 coverage/
