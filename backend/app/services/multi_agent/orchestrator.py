@@ -216,6 +216,9 @@ def run_generate_flow(
         "error": None,
         "retry_count": 0,
         "max_retries": 1,
+        "agent_messages": [],
+        "reextract_count": 0,
+        "reevaluation_count": 0,
         "agent_log": [],
     }
 
@@ -260,6 +263,9 @@ def run_submit_flow(
         "error": None,
         "retry_count": 0,
         "max_retries": 1,
+        "agent_messages": [],
+        "reextract_count": 0,
+        "reevaluation_count": 0,
         "agent_log": [],
     }
 

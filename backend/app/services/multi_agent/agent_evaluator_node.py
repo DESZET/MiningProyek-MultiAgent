@@ -134,20 +134,41 @@ def run(state: AgentState) -> AgentState:
         "strong_topics": strong_topics[:5],
         "needs_retry": needs_retry,
         "adaptive_difficulty": adaptive_difficulty,
+        # Dua arah: default False, Insight bisa set True untuk minta re-evaluate
+        "needs_reevaluation": False,
+        # Enrichment dari Extractor (komunikasi dua arah Extractor → Evaluator)
+        "topic_context": extractor.get("estimated_topic") if state.get("extractor") else None,
     }
+
+    # Kirim pesan ke Insight via agent_messages (komunikasi dua arah)
+    messages = list(state.get("agent_messages", []))
+    messages.append({
+        "from": "evaluator",
+        "to": "insight",
+        "msg": (
+            f"Evaluasi selesai: score={score}%, level={level.value}, "
+            f"weak={weak_topics[:3]}, needs_retry={needs_retry}, "
+            f"adaptive_difficulty={adaptive_difficulty}"
+        ),
+    })
+    if needs_retry:
+        messages.append({
+            "from": "evaluator",
+            "to": "quiz_maker",
+            "msg": f"Auto-retry diperlukan: score={score}% < 50%, weak_topics={weak_topics[:3]}",
+        })
 
     log.append(
         f"agent_evaluator: done — score={score}%, level={level.value}, "
         f"weak_topics={weak_topics[:3]}, needs_retry={needs_retry}"
     )
 
-    # Simpan ke state juga untuk access oleh downstream agents
     state_update = {
         **state,
         "evaluator": evaluator_out,
         "agent_log": log,
+        "agent_messages": messages,
     }
-    # Propagate eval_result ke insight agent (simpan sebagai raw)
     state_update["_eval_result"] = eval_result  # type: ignore[typeddict-unknown-key]
 
     return state_update

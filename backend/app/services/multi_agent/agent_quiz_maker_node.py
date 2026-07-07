@@ -163,17 +163,41 @@ def run(state: AgentState) -> AgentState:
         "total_questions": len(questions_raw),
         "difficulty": difficulty,
         "topic": quiz_internal.topic,
-        "polished": True,   # polish sudah terjadi di quiz_generator via agent_quiz_maker
+        "polished": True,
         "validated": validated,
+        # Dua arah: request re-extract kalau soal terlalu sedikit
+        "requested_reextract": len(questions_raw) < 2,
+        "questions_below_minimum": len(questions_raw) < 2,
     }
 
     # Simpan ke storage agar endpoint submit bisa lookup
     from app.services import quiz_storage
     quiz_storage.save_quiz(quiz_internal)
 
+    # Kirim pesan ke agent lain via agent_messages (komunikasi dua arah)
+    messages = list(state.get("agent_messages", []))
+    messages.append({
+        "from": "quiz_maker",
+        "to": "evaluator",
+        "msg": f"Quiz dibuat: {len(questions_raw)} soal, difficulty={difficulty}, topic={quiz_internal.topic}",
+    })
+    if len(questions_raw) < 2:
+        messages.append({
+            "from": "quiz_maker",
+            "to": "extractor",
+            "msg": f"Re-extract diperlukan: hanya {len(questions_raw)} soal yang valid",
+        })
+        log.append("agent_quiz_maker: requesting re-extract from Extractor (soal terlalu sedikit)")
+
     log.append(
         f"agent_quiz_maker: done — {len(questions_raw)} soal, "
         f"difficulty={difficulty}, validated={validated}"
     )
 
-    return {**state, "quiz_maker": quiz_maker_out, "quiz_id": quiz_internal.quiz_id, "agent_log": log}
+    return {
+        **state,
+        "quiz_maker": quiz_maker_out,
+        "quiz_id": quiz_internal.quiz_id,
+        "agent_log": log,
+        "agent_messages": messages,
+    }

@@ -83,7 +83,7 @@ def _parse_llm_output(text: str) -> tuple[str, str, list[str], str] | None:
     return insight, recommendation, study_path, difficulty
 
 
-def _call_llm(evaluator: dict) -> tuple[str, str, list[str], str] | None:
+def _call_llm(evaluator: dict, topic_context: str | None = None) -> tuple[str, str, list[str], str] | None:
     """Panggil LLM untuk insight + study path. Return None kalau gagal."""
     token = os.getenv("GITHUB_TOKEN")
     if not token:
@@ -100,6 +100,9 @@ def _call_llm(evaluator: dict) -> tuple[str, str, list[str], str] | None:
     strong = evaluator.get("strong_topics", [])
     adaptive = evaluator.get("adaptive_difficulty", "medium")
 
+    # Enrichment dari Extractor (komunikasi dua arah)
+    topic_line = f"- Topik materi (dari Extractor): {topic_context}\n" if topic_context else ""
+
     prompt = (
         f"DATA HASIL KUIS:\n"
         f"- Skor: {score}%\n"
@@ -108,6 +111,7 @@ def _call_llm(evaluator: dict) -> tuple[str, str, list[str], str] | None:
         f"- Level pemahaman: {level}\n"
         f"- Topik lemah: {', '.join(weak) if weak else 'tidak terdeteksi'}\n"
         f"- Topik kuat: {', '.join(strong) if strong else 'tidak terdeteksi'}\n"
+        f"{topic_line}"
         f"- Rekomendasi difficulty berikutnya: {adaptive}\n\n"
         "Buat insight, rekomendasi, study path, dan konfirmasi difficulty sesuai format."
     )
@@ -136,7 +140,13 @@ def _call_llm(evaluator: dict) -> tuple[str, str, list[str], str] | None:
 
 
 def run(state: AgentState) -> AgentState:
-    """LangGraph node: generate insight + study path dari EvaluatorOutput."""
+    """LangGraph node: generate insight + study path dari EvaluatorOutput.
+
+    Komunikasi dua arah:
+    - Baca agent_messages dari Evaluator untuk context tambahan
+    - Kirim pesan balik ke Evaluator kalau data tidak konsisten
+    - Enrich dengan metadata topik dari Extractor
+    """
     log = list(state.get("agent_log", []))
     log.append("agent_insight: start")
 
@@ -146,45 +156,104 @@ def run(state: AgentState) -> AgentState:
         state["agent_log"] = log
         return state
 
+    # Dua arah: baca pesan dari Evaluator via agent_messages
+    messages = list(state.get("agent_messages", []))
+    eval_messages = [m for m in messages if m.get("to") == "insight" and m.get("from") == "evaluator"]
+    if eval_messages:
+        log.append(f"agent_insight: received {len(eval_messages)} message(s) from Evaluator")
+
+    # Dua arah: enrich dengan topik context dari Extractor (kalau ada)
+    topic_enriched = False
+    extractor = state.get("extractor")
+    topic_context = evaluator.get("topic_context") or (
+        extractor.get("estimated_topic") if extractor else None
+    )
+    if topic_context:
+        topic_enriched = True
+        log.append(f"agent_insight: enriched with Extractor topic context: {topic_context}")
+
     # Coba LLM
-    result = _call_llm(evaluator)
+    result = _call_llm(evaluator, topic_context)
 
     if result:
         insight, recommendation, study_path, adaptive_difficulty = result
         log.append("agent_insight: LLM insight+study_path generated")
+
+        # Dua arah: validasi konsistensi data — kalau ada anomali, minta re-evaluate
+        needs_reevaluation = False
+        reevaluation_reason = None
+        score = evaluator.get("score_percentage", 0)
+        level = evaluator.get("understanding_level", "low")
+        # Deteksi inkonsistensi: skor tinggi tapi level low, atau sebaliknya
+        if score >= 80 and level == "low":
+            needs_reevaluation = True
+            reevaluation_reason = f"Inkonsistensi: skor {score}% tapi level={level}"
+            log.append(f"agent_insight: requesting re-evaluation — {reevaluation_reason}")
+            messages.append({
+                "from": "insight",
+                "to": "evaluator",
+                "msg": reevaluation_reason,
+            })
+        elif score < 30 and level == "high":
+            needs_reevaluation = True
+            reevaluation_reason = f"Inkonsistensi: skor {score}% tapi level={level}"
+            log.append(f"agent_insight: requesting re-evaluation — {reevaluation_reason}")
+            messages.append({
+                "from": "insight",
+                "to": "evaluator",
+                "msg": reevaluation_reason,
+            })
     else:
         # Fallback ke rule-based
         log.append("agent_insight: using rule-based fallback")
         from app.services import insight_engine, recommendation_engine
         from app.schemas.result import UnderstandingLevel
 
-        # Reconstruct eval_result dari state untuk rule-based
         eval_result = state.get("_eval_result")  # type: ignore[typeddict-item]
         level_str = evaluator.get("understanding_level", "low")
-        level = UnderstandingLevel(level_str)
+        level_enum = UnderstandingLevel(level_str)
 
         if eval_result:
-            insight = insight_engine.generate_insight(level, eval_result)
-            recommendation = recommendation_engine.generate_recommendation(level, eval_result)
+            insight = insight_engine.generate_insight(level_enum, eval_result)
+            recommendation = recommendation_engine.generate_recommendation(level_enum, eval_result)
         else:
             insight = "Hasil kuis sudah direkam."
             recommendation = "Lanjutkan belajar dan asah lagi."
 
-        # Fallback study path dari weak_topics
         weak = evaluator.get("weak_topics", [])
         study_path = [f"{t} — perlu dipelajari ulang" for t in weak[:3]]
         adaptive_difficulty = evaluator.get("adaptive_difficulty", "medium")
+        needs_reevaluation = False
+        reevaluation_reason = None
 
     insight_out: InsightOutput = {
         "insight": insight,
         "recommendation": recommendation,
         "study_path": study_path,
         "adaptive_difficulty": adaptive_difficulty,
+        # Dua arah feedback
+        "requested_reevaluation": needs_reevaluation,
+        "reevaluation_reason": reevaluation_reason,
+        "topic_enriched": topic_enriched,
     }
+
+    # Kirim pesan balik ke Extractor (konfirmasi topik terdeteksi)
+    if topic_context:
+        messages.append({
+            "from": "insight",
+            "to": "extractor",
+            "msg": f"Topik '{topic_context}' berhasil digunakan untuk study path",
+        })
 
     log.append(
         f"agent_insight: done — study_path={len(study_path)} items, "
-        f"adaptive_difficulty={adaptive_difficulty}"
+        f"adaptive_difficulty={adaptive_difficulty}, "
+        f"topic_enriched={topic_enriched}, needs_reevaluation={needs_reevaluation}"
     )
 
-    return {**state, "insight": insight_out, "agent_log": log}
+    return {
+        **state,
+        "insight": insight_out,
+        "agent_log": log,
+        "agent_messages": messages,
+    }

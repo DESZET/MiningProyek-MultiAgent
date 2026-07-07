@@ -93,6 +93,42 @@ def _summarize_with_llm(text: str) -> str | None:
         return None
 
 
+def _expand_with_llm(text: str) -> str | None:
+    """Expand materi pendek dengan elaborasi LLM. Dipanggil kalau Quiz Maker minta re-extract."""
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        return None
+    try:
+        resp = httpx.post(
+            _API_URL,
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={
+                "model": _MODEL,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "Kamu adalah asisten pendidikan bahasa Indonesia. "
+                            "Tugas: elaborasi teks berikut menjadi 3-4 paragraf yang lebih lengkap "
+                            "dengan menambahkan penjelasan konsep, contoh, dan detail relevan. "
+                            "Tetap akurat secara faktual. Gunakan bahasa Indonesia yang jelas."
+                        ),
+                    },
+                    {"role": "user", "content": f"Elaborasi teks ini:\n\n{text}"},
+                ],
+                "temperature": 0.4,
+                "max_tokens": 500,
+            },
+            timeout=_TIMEOUT_S,
+        )
+        resp.raise_for_status()
+        expanded = (resp.json()["choices"][0]["message"]["content"] or "").strip()
+        return expanded if len(expanded) >= 300 else None
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("agent_extractor: expand failed: %s", exc)
+        return None
+
+
 def run(state: AgentState) -> AgentState:
     """LangGraph node: proses raw_input menjadi clean_text + metadata.
 
@@ -147,11 +183,35 @@ def run(state: AgentState) -> AgentState:
         "is_summarized": is_summarized,
         "quality_ok": quality_ok,
         "quality_hint": quality_hint,
+        # Dua arah: default False, Quiz Maker bisa set True untuk trigger re-extract
+        "needs_reextract": False,
+        "reextract_reason": None,
     }
+
+    # Cek apakah ada permintaan re-extract dari Quiz Maker (komunikasi dua arah)
+    prev_quiz_maker = state.get("quiz_maker")
+    if prev_quiz_maker and prev_quiz_maker.get("requested_reextract"):
+        reason = prev_quiz_maker.get("questions_below_minimum", False)
+        log.append(f"agent_extractor: re-extract requested by Quiz Maker — expanding material")
+        # Coba expand materi dengan LLM kalau re-extract diminta
+        if quality_ok and len(clean_text) < 500:
+            expanded = _expand_with_llm(clean_text)
+            if expanded:
+                extractor_out["clean_text"] = expanded
+                extractor_out["char_count"] = len(expanded)
+                log.append(f"agent_extractor: material expanded {len(clean_text)}->{len(expanded)} chars")
 
     log.append(
         f"agent_extractor: done — lang={extractor_out['language']}, "
         f"chars={extractor_out['char_count']}, quality={quality_ok}"
     )
 
-    return {**state, "extractor": extractor_out, "agent_log": log}
+    # Kirim pesan ke Quiz Maker via agent_messages
+    messages = list(state.get("agent_messages", []))
+    messages.append({
+        "from": "extractor",
+        "to": "quiz_maker",
+        "msg": f"Materi siap: {extractor_out['estimated_topic']}, {extractor_out['sentence_count']} kalimat, lang={extractor_out['language']}",
+    })
+
+    return {**state, "extractor": extractor_out, "agent_log": log, "agent_messages": messages}
