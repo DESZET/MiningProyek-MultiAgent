@@ -206,6 +206,12 @@ def run(state: AgentState) -> AgentState:
         f"chars={extractor_out['char_count']}, quality={quality_ok}"
     )
 
+    # Propagate quality error ke state agar route handler bisa tampilkan pesan spesifik
+    error_msg = state.get("error")
+    if not quality_ok and quality_hint:
+        error_msg = quality_hint
+        log.append(f"agent_extractor: quality check failed — {quality_hint}")
+
     # Kirim pesan ke Quiz Maker via agent_messages
     messages = list(state.get("agent_messages", []))
     messages.append({
@@ -214,4 +220,4 @@ def run(state: AgentState) -> AgentState:
         "msg": f"Materi siap: {extractor_out['estimated_topic']}, {extractor_out['sentence_count']} kalimat, lang={extractor_out['language']}",
     })
 
-    return {**state, "extractor": extractor_out, "agent_log": log, "agent_messages": messages}
+    return {**state, "extractor": extractor_out, "error": error_msg, "agent_log": log, "agent_messages": messages}
